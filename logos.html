@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Convertisseur d'images en Base64</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #0096ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0077cc;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            word-break: break-all;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        h3 {
+            color: #0096ff;
+        }
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Convertisseur d'Images en Base64</h1>
+        
+        <div class="instructions">
+            <h3>📋 Instructions :</h3>
+            <p>1. Sélectionnez chaque image (Vinted, Cara, Art Fight)</p>
+            <p>2. Cliquez sur "Convertir"</p>
+            <p>3. Le base64 s'affichera ci-dessous</p>
+            <p>4. Copiez le code et envoyez-le moi</p>
+        </div>
+
+        <div>
+            <h3>📸 Vinted (Logo turquoise avec V blanc)</h3>
+            <input type="file" id="vintedFile" accept="image/*">
+            <button onclick="convertImage('vintedFile', 'vintedOutput')">🔄 Convertir Vinted</button>
+            <div id="vintedOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h3>🎨 Cara (Logo noir avec C blanc)</h3>
+            <input type="file" id="caraFile" accept="image/*">
+            <button onclick="convertImage('caraFile', 'caraOutput')">🔄 Convertir Cara</button>
+            <div id="caraOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h3>⚔️ Art Fight (Pinceau coloré)</h3>
+            <input type="file" id="artFightFile" accept="image/*">
+            <button onclick="convertImage('artFightFile', 'artFightOutput')">🔄 Convertir Art Fight</button>
+            <div id="artFightOutput" class="output" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function convertImage(inputId, outputId) {
+            const fileInput = document.getElementById(inputId);
+            const outputDiv = document.getElementById(outputId);
+            
+            if (!fileInput.files[0]) {
+                alert('Sélectionnez une image!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                outputDiv.textContent = base64;
+                outputDiv.style.display = 'block';
+                console.log(base64);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    </script>
+</body>
+</html>

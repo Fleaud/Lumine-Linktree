@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumine - Links</title>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0096ff 0%, #00c896 100%);
+            transition: background 0.5s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .creator-tag {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            z-index: 100;
+            opacity: 0.9;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.3), rgba(0, 200, 150, 0.3));
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .creator-tag:hover {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 200, 150, 0.3);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 200, 150, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 150, 255, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, 20px); }
+        }
+
+        .admin-lock-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.3), rgba(0, 200, 150, 0.3));
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(15px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 150, 255, 0.2);
+        }
+
+        .admin-lock-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.5), rgba(0, 200, 150, 0.5));
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 12px 40px rgba(0, 200, 150, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #0096ff 0%, #00c896 100%);
+            padding: 40px;
+            border-radius: 25px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 150, 255, 0.4);
+            animation: slideUp 0.4s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            margin-bottom: 25px;
+            color: white;
+            font-size: 28px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: white;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-content button:hover {
+            background: white;
+            color: #0096ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,255,255,0.3);
+        }
+
+        .close-btn {
+            background: rgba(255, 59, 48, 0.3) !important;
+            border-color: #ff3b30 !important;
+        }
+
+        .close-btn:hover {
+            background: #ff3b30 !important;
+            color: white !important;
+        }
+
+        .customization-panel {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.95), rgba(0, 200, 150, 0.95));
+            padding: 25px;
+            padding-right: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 150, 255, 0.4);
+            z-index: 999;
+            max-width: 320px;
+            max-height: calc(100vh - 100px);
+            overflow-y: scroll;
+            overflow-x: hidden;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            overscroll-behavior: contain;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .close-panel-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            line-height: 1;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-panel-btn:hover {
+            background: white;
+            color: #0096ff;
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .customization-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .customization-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .customization-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+            border-radius: 10px;
+        }
+
+        .customization-panel::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
+        }
+
+        .customization-panel .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .customization-panel .section:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .customization-panel .section h4 {
+            margin-bottom: 10px;
+            color: white;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .customization-panel input[type="color"] {
+            width: 100%;
+            height: 45px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .customization-panel input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .customization-panel input[type="file"]:hover {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .customization-panel button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .apply-btn {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .apply-btn:hover {
+            background: white;
+            color: #0096ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .add-link-float {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #0096ff, #00c896);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 32px;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(0, 150, 255, 0.4);
+            z-index: 998;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: pulse 2s infinite;
+            width: 65px;
+            height: 65px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 10px 40px rgba(0, 150, 255, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 50px rgba(0, 200, 150, 0.6);
+            }
+        }
+
+        .add-link-float:hover {
+            transform: scale(1.2) rotate(90deg);
+            box-shadow: 0 15px 50px rgba(0, 200, 150, 0.6);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .profile-section {
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .profile-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            border: 5px solid rgba(255,255,255,0.9);
+            box-shadow: 0 15px 50px rgba(0, 150, 255, 0.4);
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 20px 60px rgba(0, 200, 150, 0.6);
+            border-color: #00c896;
+        }
+
+        .profile-name {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #001f3f, #0096ff, #00c896);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.3));
+        }
+
+        .profile-bio {
+            font-size: 16px;
+            color: rgba(255,255,255,0.95);
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+        }
+
+        .links-container {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 30px;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #000000;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(0, 150, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #00c896, #0096ff);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .link-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .link-item:hover::before {
+            left: 100%;
+        }
+
+        .link-item:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0, 200, 150, 0.5);
+            border-color: white;
+        }
+
+        .link-item:active {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .link-logo {
+            width: 35px;
+            height: 35px;
+            margin-right: 20px;
+            object-fit: contain;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
+        }
+
+        .link-item:hover .link-logo {
+            transform: scale(1.2) rotate(360deg);
+        }
+
+        .delete-btn {
+            position: absolute;
+            right: 15px;
+            background: rgba(255, 59, 48, 0.9);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+        }
+
+        .link-item:hover .delete-btn {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .delete-btn:hover {
+            background: #ff3b30;
+            transform: scale(1.1);
+        }
+
+        .links-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .link-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .link-list-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .link-list-item span {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .link-list-item button {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin-left: 5px;
+        }
+
+        .link-list-item button:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
+        }
+
+        .link-list-item .edit-btn {
+            background: #0096ff;
+        }
+
+        .link-list-item .edit-btn:hover {
+            background: #0077cc;
+        }
+
+        .links-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .links-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .links-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+
+        .links-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .customization-panel {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+            }
+            
+            .add-link-float {
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body id="mainBody">
+    <div class="creator-tag">Site by Fléau</div>
+    <button class="admin-lock-btn" onclick="showAdminModal()">🔒</button>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h2>🔐 Code Admin</h2>
+            <input type="password" id="adminCode" placeholder="Entrez le code secret">
+            <button onclick="checkAdminCode()">✓ Valider</button>
+            <button class="close-btn" onclick="closeAdminModal()">✕ Annuler</button>
+        </div>
+    </div>
+
+    <div id="addLinkModal" class="modal">
+        <div class="modal-content">
+            <h2>➕ Nouveau Lien</h2>
+            <input type="text" id="linkUrl" placeholder="🔗 URL complète (https://...)">
+            <input type="text" id="linkName" placeholder="📝 Nom du site">
+            <input type="file" id="linkLogo" accept="image/*" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px dashed rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
+            <button onclick="addNewLink()">✓ Ajouter</button>
+            <button class="close-btn" onclick="closeAddLinkModal()">✕ Annuler</button>
+        </div>
+    </div>
+
+    <div id="editLinkModal" class="modal">
+        <div class="modal-content">
+            <h2>✏️ Modifier le lien</h2>
+            <input type="text" id="editLinkUrl" placeholder="🔗 URL complète (https://...)">
+            <input type="text" id="editLinkName" placeholder="📝 Nom du site">
+            <input type="file" id="editLinkLogo" accept="image/*" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px dashed rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
+            <div id="editCurrentLogo" style="text-align: center; margin-bottom: 15px;"></div>
+            <button onclick="saveEditLink()">✓ Sauvegarder</button>
+            <button class="close-btn" onclick="closeEditLinkModal()">✕ Annuler</button>
+        </div>
+    </div>
+
+    <button id="addLinkFloat" class="add-link-float" onclick="showAddLinkModal()">➕</button>
+
+    <div id="customizationPanel" class="customization-panel">
+        <div class="panel-header">
+            <h3>🎨 Personnalisation</h3>
+            <button class="close-panel-btn" onclick="hideCustomizationPanel()">✕</button>
+        </div>
+        
+        <div class="section">
+            <h4>🖼️ Fond d'écran</h4>
+            <input type="color" id="bgColor" value="#0096ff">
+            <input type="file" id="bgImage" accept="image/*">
+            <button class="apply-btn" onclick="applyBgChange()">Appliquer le fond</button>
+        </div>
+
+        <div class="section">
+            <h4>🎭 Couleur des cadres</h4>
+            <input type="color" id="frameColor" value="#00c896">
+            <button class="apply-btn" onclick="applyFrameChange()">Appliquer aux cadres</button>
+        </div>
+
+        <div class="section">
+            <h4>🖼️ Changer la photo de profil</h4>
+            <input type="file" id="profileImage" accept="image/*">
+            <button class="apply-btn" onclick="applyProfileChange()">Changer la photo</button>
+        </div>
+
+        <div class="section">
+            <h4>🗑️ Gérer les liens</h4>
+            <div class="links-list" id="linksList"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="profile-section">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23001f3f;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%230096ff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2300c896;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='80' fill='url(%23grad)'/%3E%3Ctext x='100' y='115' font-family='Arial' font-size='60' fill='white' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E" alt="Lumine" class="profile-image" id="profileImg">
+            <div class="profile-name">LUMINE</div>
+            <div class="profile-bio">✨ Artiste & Créateur ✨</div>
+        </div>
+        
+        <div class="links-container" id="linksContainer"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBV7JvVyIo081jaUm1aKI29gMRwHHzoM0M",
+            authDomain: "lumine-linktree-c4052.firebaseapp.com",
+            databaseURL: "https://lumine-linktree-c4052-default-rtdb.firebaseio.com",
+            projectId: "lumine-linktree-c4052",
+            storageBucket: "lumine-linktree-c4052.firebasestorage.app",
+            messagingSenderId: "571534486555",
+            appId: "1:571534486555:web:39edf1ede1745f20159cbe"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const storage = firebase.storage();
+
+        // ========================================
+        // 🔐 VARIABLES GLOBALES
+        // ========================================
+        let isAdminMode = false;
+        let adminPassword = "564311";
+        let currentEditingLinkId = null;
+        let links = [];
+        let userData = {
+            profileImage: null,
+            profileName: "LUMINE",
+            profileBio: "✨ Artiste & Créateur ✨",
+            bgColor: "#0096ff",
+            bgImage: null,
+            frameColor: "#00c896"
+        };
+
+        // ========================================
+        // 📱 INITIALISATION DU SITE
+        // ========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDataFromFirebase();
+            applyCustomization();
+            setupAdminUI();
+            initializeDefaultLinks();
+        });
+
+        // ========================================
+        // 🔗 INITIALISER LES LIENS PAR DÉFAUT
+        // ========================================
+        async function initializeDefaultLinks() {
+            try {
+                setTimeout(() => {
+                    const linksRef = db.ref('links');
+                    linksRef.once('value', (snapshot) => {
+                        if (!snapshot.exists() || snapshot.numChildren() === 0) {
+                            // Ajouter les liens par défaut
+                            const defaultLinks = [
+                                {
+                                    name: '📸 Instagram',
+                                    url: 'https://www.instagram.com/lumine_561?igsh=MXdua2lmNXp3OXRwaA%3D%3D&utm_source=qr',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Cdefs%3E%3ClinearGradient id=%22ig%22 x1=%220%25%22 y1=%22100%25%22 x2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%23feda75%22/%3E%3Cstop offset=%2225%25%22 style=%22stop-color:%23fa7e1e%22/%3E%3Cstop offset=%2250%25%22 style=%22stop-color:%23d92e7f%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%239b36b7%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill=%22url(%23ig)%22 width=%22200%22 height=%22200%22/%3E%3Crect x=%2240%22 y=%2240%22 width=%22120%22 height=%22120%22 fill=%22none%22 stroke=%22white%22 stroke-width=%228%22 rx=%2220%22/%3E%3Ccircle cx=%22100%22 cy=%22100%22 r=%2235%22 fill=%22none%22 stroke=%22white%22 stroke-width=%228%22/%3E%3Ccircle cx=%22140%22 cy=%2260%22 r=%228%22 fill=%22white%22/%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '🎬 YouTube',
+                                    url: 'https://youtube.com/@luminethefurry4581?si=L0IMv5p_9okdW-Or',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF0000%22 width=%22200%22 height=%22200%22/%3E%3Cpath fill=%22white%22 d=%22M 70 130 L 70 70 L 130 100 Z%22/%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '📖 Wattpad',
+                                    url: 'https://www.wattpad.com/user/Lumine5631',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Cdefs%3E%3ClinearGradient id=%22watt%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%23ee145b%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%23662d91%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill=%22url(%23watt)%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%22100%22 y=%22130%22 font-family=%22Arial Black%22 font-size=%2280%22 fill=%22white%22 text-anchor=%22middle%22 font-weight=%22bold%22%3EW%3C/text%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '🏠 Toyhouse',
+                                    url: 'https://toyhou.se/Lumine56',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF6B9D%22 width=%22200%22 height=%22200%22/%3E%3Cpath fill=%22white%22 d=%22M 100 40 L 160 90 L 160 160 L 40 160 L 40 90 Z%22 stroke=%22white%22 stroke-width=%224%22 stroke-linejoin=%22round%22/%3E%3Crect x=%2260%22 y=%22120%22 width=%2280%22 height=%2240%22 fill=%22%23FF6B9D%22/%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '🎨 Cara',
+                                    url: 'https://cara.app/lumine56/all',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%238B4ACE%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2260%22 r=%2230%22 fill=%22white%22/%3E%3Crect x=%2260%22 y=%22110%22 width=%2280%22 height=%2260%22 rx=%2210%22 fill=%22white%22/%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '⚔️ Art Fight',
+                                    url: 'https://artfight.net/~Lumine56',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%23FF4444%22 width=%22200%22 height=%22200%22/%3E%3Cpath fill=%22white%22 d=%22M 100 30 L 130 90 L 170 90 L 140 130 L 160 190 L 100 150 L 40 190 L 60 130 L 30 90 L 70 90 Z%22/%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                },
+                                {
+                                    name: '💚 Vinted',
+                                    url: 'https://www.vinted.fr/member/230266090',
+                                    logo: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%2300B4B4%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%22100%22 y=%22130%22 font-family=%22Arial%22 font-size=%2270%22 fill=%22white%22 text-anchor=%22middle%22 font-weight=%22bold%22%3EV%3C/text%3E%3C/svg%3E',
+                                    clicks: 0,
+                                    createdAt: new Date().toISOString()
+                                }
+                            ];
+
+                            // Sauvegarder tous les liens
+                            defaultLinks.forEach(link => {
+                                db.ref('links').push(link);
+                            });
+
+                            console.log('✅ Liens par défaut initialisés');
+                        }
+                    });
+                }, 1000);
+            } catch (error) {
+                console.error('Erreur init liens:', error);
+            }
+        }
+
+        // ========================================
+        // 🔥 FIREBASE - CHARGER LES DONNÉES
+        // ========================================
+        async function loadDataFromFirebase() {
+            try {
+                // Charger les données utilisateur
+                const userRef = db.ref('user');
+                userRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        userData = { ...userData, ...snapshot.val() };
+                        applyCustomization();
+                    }
+                });
+
+                // Charger les liens
+                const linksRef = db.ref('links');
+                linksRef.on('value', (snapshot) => {
+                    links = [];
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            links.push({
+                                id: childSnapshot.key,
+                                ...childSnapshot.val()
+                            });
+                        });
+                    }
+                    renderLinks();
+                    updateLinksList();
+                });
+            } catch (error) {
+                console.error('Erreur Firebase:', error);
+                showNotification('⚠️ Erreur de connexion Firebase', 'error');
+            }
+        }
+
+        // ========================================
+        // 🔥 FIREBASE - SAUVEGARDER LES DONNÉES
+        // ========================================
+        async function saveDataToFirebase(path, data) {
+            try {
+                await db.ref(path).set(data);
+                showNotification('✅ Données sauvegardées', 'success');
+                return true;
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                showNotification('❌ Erreur lors de la sauvegarde', 'error');
+                return false;
+            }
+        }
+
+        // ========================================
+        // 🔥 FIREBASE - UPLOADER UNE IMAGE
+        // ========================================
+        async function uploadImage(file, folder) {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    resolve(null);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const base64 = e.target.result;
+                        console.log(`📤 Conversion ${folder} en base64...`);
+                        
+                        // Utiliser directement base64 (plus fiable que Firebase Storage)
+                        resolve(base64);
+                    } catch (error) {
+                        console.error('Erreur upload:', error);
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => {
+                    reject(new Error('Erreur lors de la lecture du fichier'));
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ========================================
+        // 🔐 ADMIN - VÉRIFIER LE CODE
+        // ========================================
+        async function checkAdminCode() {
+            const code = document.getElementById('adminCode').value;
+            
+            if (code === adminPassword) {
+                isAdminMode = true;
+                closeAdminModal();
+                document.getElementById('addLinkFloat').style.display = 'flex';
+                document.getElementById('customizationPanel').style.display = 'block';
+                showNotification('✅ Mode admin activé!', 'success');
+            } else {
+                showNotification('❌ Code incorrect!', 'error');
+                document.getElementById('adminCode').value = '';
+            }
+        }
+
+        // ========================================
+        // 🔐 ADMIN - DÉSACTIVER LE MODE
+        // ========================================
+        function disableAdminMode() {
+            isAdminMode = false;
+            document.getElementById('addLinkFloat').style.display = 'none';
+            document.getElementById('customizationPanel').style.display = 'none';
+            showNotification('🔒 Mode admin désactivé', 'info');
+        }
+
+        // ========================================
+        // 📝 LIENS - AJOUTER UN NOUVEAU LIEN
+        // ========================================
+        async function addNewLink() {
+            const url = document.getElementById('linkUrl').value.trim();
+            const name = document.getElementById('linkName').value.trim();
+            const logoFile = document.getElementById('linkLogo').files[0];
+
+            if (!url || !name) {
+                showNotification('⚠️ Remplissez tous les champs!', 'error');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showNotification('⚠️ L\'URL doit commencer par http:// ou https://', 'error');
+                return;
+            }
+
+            try {
+                showNotification('⏳ Ajout en cours...', 'info');
+                
+                let logoUrl = null;
+                if (logoFile) {
+                    logoUrl = await uploadImage(logoFile, 'logos');
+                }
+
+                const newLink = {
+                    url: url,
+                    name: name,
+                    logo: logoUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%2300c896%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2248%22 fill=%22white%22 font-family=%22Arial%22%3E🔗%3C/text%3E%3C/svg%3E',
+                    clicks: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                const newLinkRef = db.ref('links').push();
+                await newLinkRef.set(newLink);
+
+                closeAddLinkModal();
+                showNotification('✅ Lien ajouté avec succès!', 'success');
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('❌ Erreur lors de l\'ajout du lien', 'error');
+            }
+        }
+
+        // ========================================
+        // 📝 LIENS - SUPPRIMER UN LIEN
+        // ========================================
+        async function deleteLink(linkId) {
+            if (!isAdminMode) return;
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce lien?')) {
+                try {
+                    await db.ref(`links/${linkId}`).remove();
+                    showNotification('✅ Lien supprimé!', 'success');
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showNotification('❌ Erreur lors de la suppression', 'error');
+                }
+            }
+        }
+
+        // ========================================
+        // 📝 LIENS - OUVRIR MODAL ÉDITION
+        // ========================================
+        function openEditLinkModal(linkId) {
+            if (!isAdminMode) return;
+            
+            currentEditingLinkId = linkId;
+            const link = links.find(l => l.id === linkId);
+            
+            if (link) {
+                document.getElementById('editLinkUrl').value = link.url;
+                document.getElementById('editLinkName').value = link.name;
+                
+                const logoContainer = document.getElementById('editCurrentLogo');
+                logoContainer.innerHTML = `<img src="${link.logo}" alt="${link.name}" style="width: 60px; height: 60px; border-radius: 10px;">`;
+                
+                document.getElementById('editLinkModal').style.display = 'flex';
+            }
+        }
+
+        // ========================================
+        // 📝 LIENS - SAUVEGARDER L'ÉDITION
+        // ========================================
+        async function saveEditLink() {
+            if (!currentEditingLinkId) return;
+
+            const url = document.getElementById('editLinkUrl').value.trim();
+            const name = document.getElementById('editLinkName').value.trim();
+            const logoFile = document.getElementById('editLinkLogo').files[0];
+
+            if (!url || !name) {
+                showNotification('⚠️ Remplissez tous les champs!', 'error');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showNotification('⚠️ L\'URL doit commencer par http:// ou https://', 'error');
+                return;
+            }
+
+            try {
+                showNotification('⏳ Sauvegarde en cours...', 'info');
+                
+                const link = links.find(l => l.id === currentEditingLinkId);
+                let logoUrl = link.logo;
+
+                // Si un nouveau logo est sélectionné, le traiter
+                if (logoFile) {
+                    try {
+                        console.log('📤 Upload du logo en cours...');
+                        logoUrl = await uploadImage(logoFile, 'logos');
+                        console.log('✅ Logo uploadé:', logoUrl.substring(0, 50) + '...');
+                    } catch (uploadError) {
+                        console.error('Erreur upload logo:', uploadError);
+                        // Utiliser le base64 directement
+                        logoUrl = await convertFileToBase64(logoFile);
+                        console.log('📥 Utilisation du base64');
+                    }
+                }
+
+                // Sauvegarder la modification
+                const updateData = {
+                    url: url,
+                    name: name,
+                    logo: logoUrl,
+                    updatedAt: new Date().toISOString()
+                };
+
+                console.log('💾 Sauvegarde Firebase:', updateData);
+                
+                await db.ref(`links/${currentEditingLinkId}`).update(updateData);
+
+                closeEditLinkModal();
+                showNotification('✅ Sauvegarde terminée!', 'success');
+                
+                // Forcer la mise à jour
+                setTimeout(() => {
+                    console.log('🔄 Actualisation de l\'affichage');
+                    updateLinksList();
+                    renderLinks();
+                }, 300);
+            } catch (error) {
+                console.error('Erreur complète:', error);
+                showNotification('❌ Erreur: ' + error.message, 'error');
+            }
+        }
+
+        // ========================================
+        // 🔄 CONVERTIR FICHIER EN BASE64
+        // ========================================
+        function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Erreur lecture fichier'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ========================================
+        // 🎨 PERSONNALISATION - FOND
+        // ========================================
+        async function applyBgChange() {
+            try {
+                showNotification('⏳ Application en cours...', 'info');
+                
+                const bgColor = document.getElementById('bgColor').value;
+                const bgImageFile = document.getElementById('bgImage').files[0];
+                
+                let bgImageUrl = userData.bgImage;
+                
+                if (bgImageFile) {
+                    bgImageUrl = await uploadImage(bgImageFile, 'backgrounds');
+                }
+
+                userData.bgColor = bgColor;
+                userData.bgImage = bgImageUrl;
+
+                await saveDataToFirebase('user', userData);
+                applyCustomization();
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('❌ Erreur lors de l\'application', 'error');
+            }
+        }
+
+        // ========================================
+        // 🎨 PERSONNALISATION - COULEUR CADRES
+        // ========================================
+        async function applyFrameChange() {
+            try {
+                const frameColor = document.getElementById('frameColor').value;
+                userData.frameColor = frameColor;
+
+                await saveDataToFirebase('user', userData);
+                applyCustomization();
+                showNotification('✅ Couleur appliquée!', 'success');
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('❌ Erreur lors de l\'application', 'error');
+            }
+        }
+
+        // ========================================
+        // 🎨 PERSONNALISATION - PHOTO DE PROFIL
+        // ========================================
+        async function applyProfileChange() {
+            try {
+                const profileImageFile = document.getElementById('profileImage').files[0];
+                
+                if (!profileImageFile) {
+                    showNotification('⚠️ Sélectionnez une image!', 'error');
+                    return;
+                }
+
+                showNotification('⏳ Upload en cours...', 'info');
+                
+                const imageUrl = await uploadImage(profileImageFile, 'profile');
+                userData.profileImage = imageUrl;
+
+                await saveDataToFirebase('user', userData);
+                applyCustomization();
+                showNotification('✅ Photo de profil mise à jour!', 'success');
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('❌ Erreur lors du changement', 'error');
+            }
+        }
+
+        // ========================================
+        // 🎨 APPLIQUER LA PERSONNALISATION
+        // ========================================
+        function applyCustomization() {
+            // Fond
+            if (userData.bgImage) {
+                document.body.style.background = `linear-gradient(135deg, rgba(0, 150, 255, 0.9), rgba(0, 200, 150, 0.9)), url('${userData.bgImage}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+            } else {
+                const gradient = generateGradient(userData.bgColor || '#0096ff');
+                document.body.style.background = gradient;
+            }
+
+            // Photo de profil
+            if (userData.profileImage) {
+                document.getElementById('profileImg').src = userData.profileImage;
+            }
+
+            // Nom et bio
+            document.querySelector('.profile-name').textContent = userData.profileName || 'LUMINE';
+            document.querySelector('.profile-bio').textContent = userData.profileBio || '✨ Artiste & Créateur ✨';
+
+            // Couleur des cadres
+            const links = document.querySelectorAll('.link-item');
+            links.forEach(link => {
+                link.style.background = `linear-gradient(135deg, ${userData.frameColor || '#00c896'}, ${userData.bgColor || '#0096ff'})`;
+            });
+
+            // Actualiser les inputs de couleur
+            document.getElementById('bgColor').value = userData.bgColor || '#0096ff';
+            document.getElementById('frameColor').value = userData.frameColor || '#00c896';
+        }
+
+        // ========================================
+        // 🌈 GÉNÉRER UN DÉGRADÉ
+        // ========================================
+        function generateGradient(color) {
+            return `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, 50)} 100%)`;
+        }
+
+        // ========================================
+        // 🎨 AJUSTER LA COULEUR
+        // ========================================
+        function adjustColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255))
+                .toString(16).slice(1);
+        }
+
+        // ========================================
+        // 🎨 AFFICHER LES LIENS
+        // ========================================
+        function renderLinks() {
+            const container = document.getElementById('linksContainer');
+            container.innerHTML = '';
+
+            if (links.length === 0) {
+                if (isAdminMode) {
+                    container.innerHTML = '<p style="color: white; font-size: 18px; margin-top: 40px;">📭 Aucun lien. Cliquez sur le + pour en ajouter!</p>';
+                } else {
+                    container.innerHTML = '<p style="color: white; font-size: 18px; margin-top: 40px;">📭 Pas de liens disponibles</p>';
+                }
+                return;
+            }
+
+            links.forEach(link => {
+                const linkElement = document.createElement('a');
+                linkElement.className = 'link-item';
+                linkElement.href = link.url;
+                linkElement.target = '_blank';
+                linkElement.rel = 'noopener noreferrer';
+                
+                // Ajouter un timestamp pour éviter le cache
+                let logoUrl = link.logo;
+                if (logoUrl && !logoUrl.startsWith('data:')) {
+                    logoUrl = logoUrl + (logoUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+                }
+                
+                linkElement.innerHTML = `
+                    <img src="${logoUrl}" alt="${link.name}" class="link-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%2200c896%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2248%22 fill=%22white%22 font-family=%22Arial%22%3E🔗%3C/text%3E%3C/svg%3E'">
+                    <span>${link.name}</span>
+                    ${isAdminMode ? `<button class="delete-btn" onclick="event.preventDefault(); openEditLinkModal('${link.id}')">✏️</button>` : ''}
+                    ${isAdminMode ? `<button class="delete-btn" onclick="event.preventDefault(); deleteLink('${link.id}')" style="right: 70px;">🗑️</button>` : ''}
+                `;
+
+                // Afficher l'URL au survol
+                linkElement.addEventListener('mouseenter', () => {
+                    const urlElement = document.createElement('div');
+                    urlElement.style.cssText = 'position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; white-space: nowrap; z-index: 10;';
+                    urlElement.textContent = link.url;
+                    linkElement.style.position = 'relative';
+                    linkElement.appendChild(urlElement);
+
+                    // Enlever l'élément après la souris
+                    linkElement.addEventListener('mouseleave', () => {
+                        urlElement.remove();
+                    }, { once: true });
+                });
+
+                // Incrémenter les clics
+                linkElement.addEventListener('click', () => {
+                    db.ref(`links/${link.id}`).update({
+                        clicks: (link.clicks || 0) + 1
+                    });
+                });
+
+                container.appendChild(linkElement);
+            });
+
+            // Appliquer les couleurs personnalisées
+            applyCustomization();
+        }
+
+        // ========================================
+        // 📋 METTRE À JOUR LA LISTE ADMIN
+        // ========================================
+        function updateLinksList() {
+            const listContainer = document.getElementById('linksList');
+            listContainer.innerHTML = '';
+
+            if (links.length === 0) {
+                listContainer.innerHTML = '<p style="color: white; font-size: 13px; text-align: center; padding: 10px;">📭 Aucun lien ajouté</p>';
+                return;
+            }
+
+            links.forEach(link => {
+                const listItem = document.createElement('div');
+                listItem.className = 'link-list-item';
+                
+                // Gérer le logo avec timestamp pour éviter le cache
+                let logoUrl = link.logo;
+                if (logoUrl && !logoUrl.startsWith('data:')) {
+                    logoUrl = logoUrl + (logoUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+                }
+                
+                listItem.innerHTML = `
+                    <div style="display: flex; align-items: center; flex: 1; gap: 10px;">
+                        <img src="${logoUrl}" alt="${link.name}" style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%2300c896%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #333;">${link.name || 'Sans nom'}</div>
+                            <div style="font-size: 11px; color: #999;">${link.clicks || 0} clics</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="edit-btn" onclick="openEditLinkModal('${link.id}')" title="Modifier" style="background: #0096ff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">✏️</button>
+                        <button onclick="deleteLink('${link.id}')" title="Supprimer" style="background: #ff3b30; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">🗑️</button>
+                    </div>
+                `;
+                listContainer.appendChild(listItem);
+            });
+        }
+
+        // ========================================
+        // 🎯 CONFIGURATION ADMIN
+        // ========================================
+        function setupAdminUI() {
+            if (isAdminMode) {
+                document.getElementById('addLinkFloat').style.display = 'flex';
+                document.getElementById('customizationPanel').style.display = 'block';
+            } else {
+                document.getElementById('addLinkFloat').style.display = 'none';
+                document.getElementById('customizationPanel').style.display = 'none';
+            }
+        }
+
+        // ========================================
+        // 🪟 MODALES - ADMIN
+        // ========================================
+        function showAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminCode').focus();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            document.getElementById('adminCode').value = '';
+        }
+
+        // ========================================
+        // 🪟 MODALES - AJOUTER LIEN
+        // ========================================
+        function showAddLinkModal() {
+            if (!isAdminMode) {
+                showAdminModal();
+                return;
+            }
+            document.getElementById('addLinkModal').style.display = 'flex';
+            document.getElementById('linkUrl').focus();
+        }
+
+        function closeAddLinkModal() {
+            document.getElementById('addLinkModal').style.display = 'none';
+            document.getElementById('linkUrl').value = '';
+            document.getElementById('linkName').value = '';
+            document.getElementById('linkLogo').value = '';
+        }
+
+        // ========================================
+        // 🪟 MODALES - ÉDITER LIEN
+        // ========================================
+        function closeEditLinkModal() {
+            document.getElementById('editLinkModal').style.display = 'none';
+            document.getElementById('editLinkUrl').value = '';
+            document.getElementById('editLinkName').value = '';
+            document.getElementById('editLinkLogo').value = '';
+            document.getElementById('editCurrentLogo').innerHTML = '';
+            currentEditingLinkId = null;
+        }
+
+        // ========================================
+        // 🎨 PANEL - PERSONNALISATION
+        // ========================================
+        function hideCustomizationPanel() {
+            if (isAdminMode) {
+                document.getElementById('customizationPanel').style.display = 'none';
+            }
+        }
+
+        // ========================================
+        // 💬 NOTIFICATIONS
+        // ========================================
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 30px;
+                right: 30px;
+                background: ${type === 'success' ? '#00c896' : type === 'error' ? '#ff3b30' : '#0096ff'};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                font-weight: 600;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                animation: slideInRight 0.4s ease;
+                z-index: 2000;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.4s ease';
+                setTimeout(() => {
+                    notification.remove();
+                }, 400);
+            }, 3000);
+        }
+
+        // ========================================
+        // ⌨️ RACCOURCIS CLAVIER
+        // ========================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAdminModal();
+                closeAddLinkModal();
+                closeEditLinkModal();
+            }
+            // Ctrl/Cmd + Shift + A = Activer mode admin
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyA') {
+                e.preventDefault();
+                showAdminModal();
+            }
+        });
+
+        // ========================================
+        // 🔄 AUTO-SAUVEGARDE
+        // ========================================
+        setInterval(() => {
+            if (isAdminMode) {
+                document.getElementById('bgColor').value = userData.bgColor || '#0096ff';
+                document.getElementById('frameColor').value = userData.frameColor || '#00c896';
+            }
+        }, 5000);
+
+        // ========================================
+        // 🪟 FERMER LES MODALES AU CLIC EXTÉRIEUR
+        // ========================================
+        window.addEventListener('click', (e) => {
+            const adminModal = document.getElementById('adminModal');
+            const addLinkModal = document.getElementById('addLinkModal');
+            const editLinkModal = document.getElementById('editLinkModal');
+
+            if (e.target === adminModal) {
+                closeAdminModal();
+            }
+            if (e.target === addLinkModal) {
+                closeAddLinkModal();
+            }
+            if (e.target === editLinkModal) {
+                closeEditLinkModal();
+            }
+        });
+
+        // ========================================
+        // 📊 ANIMATIONS CSS COMPLÉMENTAIRES
+        // ========================================
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
